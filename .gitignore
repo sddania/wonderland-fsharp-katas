@@ -23,10 +23,13 @@ bld/
 [Oo]bj/
 
 # Paket
-.paket/paket.exe
+.paket
 
 # Visual Studo 2015 cache/options directory
 .vs/
+
+# Ionide
+.ionide
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
