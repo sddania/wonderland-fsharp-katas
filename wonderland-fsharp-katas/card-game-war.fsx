@@ -17,40 +17,71 @@ type Rank =
 
 type Card = Suit * Rank
 
-let playRound (card1:Card,card2:Card) =
-    failwith "not implemented: winning card"
+type Round =
+    | Won
+    | Lost  // the round cannot match because the hands cannot be never the same. 
 
-let playGame (hand1:Card list, hand2:Card list) =
-    failwith "not implemented: game winner"
+type Game =
+    | Win
+    | Lose
+    | NotFinished
 
-(*
-let suits = [ Spade; Club; Diamond; Heart ]
-let heads = [ Jack; Queen; King; Ace ]
+let playRound (card1: Card, card2: Card) : Round =
+    let (suit1, rank1) = card1
+    let (suit2, rank2) = card2
 
-let ranks =
-    [   for v in 2 .. 10 -> Value v
-        for head in heads -> head
-    ]
+    if (suit1 > suit2 || (suit1 = suit2 && rank1 > rank2)) then
+        Won
+    else
+        Lost
 
-let deck = seq {
-    for suit in suits do
-        for rank in ranks -> suit,rank }
-*)
+let rec playGame (hand1: Card list, hand2: Card list) : Game =
+    if hand1.Length = 0 then
+        Lose
+    elif hand2.Length = 0 then
+        Win
+    else
+        match (playRound (hand1.Head, hand2.Head)) with
+        | Won -> playGame ((hand1 @ [ hand2.Head ]), hand2.Tail)
+        | Lost -> playGame (hand1.Tail, (hand2 @ [ hand1.Head ]))
 
-// fill in tests for your game
+
+#r @"../packages/Unquote/lib/net45/Unquote.dll"
+open Swensen.Unquote
+
 let tests () =
 
     // playRound
-    printfn "TODO: the highest rank wins the cards in the round"
-    printfn "TODO: queens are higher rank than jacks"
-    printfn "TODO: kings are higher rank than queens"
-    printfn "TODO: aces are higher rank than kings"
-    printfn "TODO: if the ranks are equal, clubs beat spades"
-    printfn "TODO: if the ranks are equal, diamonds beat clubs"
-    printfn "TODO: if the ranks are equal, hearts beat diamonds"
+    printfn "the highest rank wins the cards in the round"
+    test <@ playRound ((Heart, Ace), (Diamond, Ace)) = Won @>
+    test <@ playRound ((Heart, Ace), (Heart, Value(3))) = Won @>
+
+    printfn "queens are higher rank than jacks"
+    test <@ playRound ((Heart, Queen), (Heart, Jack)) = Won @>
+    test <@ playRound ((Heart, Jack), (Heart, Queen)) = Lost @>
+
+    printfn "kings are higher rank than queens"
+    test <@ playRound ((Heart, King), (Heart, Queen)) = Won @>
+    test <@ playRound ((Heart, Queen), (Heart, King)) = Lost @>
+
+    printfn "aces are higher rank than kings"
+    test <@ playRound ((Heart, Ace), (Heart, King)) = Won @>
+    test <@ playRound ((Heart, King), (Heart, Ace)) = Lost @>
+
+    printfn "if the ranks are equal, clubs beat spades"
+    test <@ playRound ((Club, Ace), (Spade, Ace)) = Won @>
+
+    printfn "if the ranks are equal, diamonds beat clubs"
+    test <@ playRound ((Diamond, Ace), (Club, Ace)) = Won @>
+
+    printfn "if the ranks are equal, hearts beat diamonds"
+    test <@ playRound ((Heart, Ace), (Diamond, Ace)) = Won @>
 
     // playGame
-    printfn "TODO: the player loses when they run out of cards"
+    printfn "the player loses when they run out of cards"
+    test <@ playGame ([], []) = Lose @>
+    test <@ playGame ([ (Heart, Ace) ], []) = Win @>
+
 
 // run the tests
 tests ()
